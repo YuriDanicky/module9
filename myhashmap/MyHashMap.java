@@ -1,95 +1,170 @@
 package module9.myhashmap;
 
-public class MyHashMap<T, K> {
+public class MyHashMap<K, V> {
 
-    private Node<T, K> head;
-    private int size = 0;
+    private Node<K, V>[] table;
+    private int capacity = 0;
+    private int size;
+    private final int START_CAPACITY = 16;
+    private int tableFullness = 0;
+    private int coefficientIncrease = 2;
 
-    public void put(T key, K value) {
-        if (isAlreadyHaveKey(key, value)) {
-            remove(key);
-        }
-        Node<T, K> newNode = new Node<>(key, value);
-        if (size != 0) {
-            newNode.next = head;
-        }
-        head = newNode;
-        size++;
-
+    /**
+     * constructor without parameters
+     */
+    public MyHashMap() {
+        this.capacity = START_CAPACITY;
+        table = (Node<K, V>[]) new Node[capacity];
     }
 
-    private boolean isAlreadyHaveKey(T key, K value) {
-        boolean result = false;
-        Node<T, K> existsNode = new Node<>(key, value);
-        Node<T, K> temp = head;
-        for (int i = 0; i < size; i++) {
-            if (existsNode.key.equals(temp.key)) {
-                result = true;
-                break;
+    /**
+     * constructor with capacity of buckets
+     *
+     * @param capacity
+     */
+    public MyHashMap(int capacity) {
+        this.capacity = capacity;
+        table = (Node<K, V>[]) new Node[capacity];
+    }
+
+    /**
+     * hash code for key
+     *
+     * @param key
+     * @return
+     */
+
+    private int hash(Object key) {
+        int h;
+        return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
+    }
+
+    /**
+     * index definition for bucket
+     *
+     * @param h
+     * @param capacity
+     * @return
+     */
+
+    private int indexFor(int h, int capacity) {
+        return h & (capacity - 1);
+    }
+
+    /**
+     * put Node to the bucket. If bucket not empty, then the Linked List will be made in this bucket
+     *
+     * @param key
+     * @param value
+     */
+    public void put(K key, V value) {
+
+        if (tableFullness >= (capacity)) {
+            table = increaseTable(table);
+        }
+        int bucketIndex = indexFor(hash(key), capacity);                                    //definition of bucket index
+
+        Node<K, V> temp = table[bucketIndex];
+        Node<K, V> newNode = new Node<>(key, value);
+
+        if (table[bucketIndex] == null) {                                                   // if bucket empty
+            table[bucketIndex] = newNode;
+            tableFullness++;
+            size++;
+        } else {                                                                            // if bucket not empty
+            while (temp.next != null) {
+                if (newNode.key.equals(temp.key)) {
+                    temp.value = newNode.value;
+                    return;
+                } else {
+                    temp = temp.next;                                                        // go down node
+                }
+            }
+            if (newNode.key.equals(temp.key)) {                                             //node.next == null && key == key
+                temp.value = newNode.value;
+                return;
+            }
+            temp.next = newNode;                                                            // write at the end
+            size++;
+        }
+    }
+
+    /**
+     * get Value by Key
+     *
+     * @param key
+     * @return
+     */
+    public V get(K key) {
+        int bucketIndex = indexFor(hash(key), capacity);
+        Node<K, V> temp = table[bucketIndex];
+        if (key.equals(temp.key)) {
+            return temp.value;
+        }
+        while (table[bucketIndex].next != null) {
+            if (key.equals(temp.key)) {
+                return temp.value;
             }
             temp = temp.next;
         }
-        return result;
+        return temp.value;
     }
 
-    public void remove(T key) {
-        Node<T, K> temp = head;
-        Node<T, K> searchingNode = new Node<>(key);
-        if (searchingNode.key.equals(temp.key)) {
-            head = head.next;
-            temp.next = null;
-            size--;
-        } else {
-            for (int i = 0; i < size - 1; i++) {
-                if (searchingNode.key.equals(temp.next.key)) {
-                    temp.next = temp.next.next;
-                    size--;
-                    return;
-                }
-                temp = temp.next;
+    /**
+     * remove Node by Key
+     *
+     * @param key
+     * @return
+     */
+    public boolean remove(K key) {
+        int bucketIndex = indexFor(hash(key), capacity);
+        Node<K, V> temp = table[bucketIndex];
+        if (key.equals(temp.key)) {
+            if (temp.next == null) {
+                table[bucketIndex] = null;
+                size--;
+                return true;
             }
         }
-    }
-
-    public void clear() {
-        head = null;
-        size = 0;
+        while (temp.next != null) {
+            if (key.equals(temp.next.key)) {
+                temp.next = temp.next.next;
+                size--;
+                return true;
+            }
+            temp = temp.next;
+        }
+        return false;
     }
 
     public int size() {
         return size;
     }
 
-    public K get(T key) {
-        Node<T, K> temp = head;
-        Node<T, K> searchingNode = new Node<>(key);
-        for (int i = 0; i < size; i++) {
-            if (searchingNode.key.equals(temp.key)) {
-                return temp.value;
-            }
-            temp = temp.next;
-        }
-        return null;
+    /**
+     * clear all elements on collection
+     */
+    public void clear() {
+        table = (new MyHashMap<K, V>()).table;
     }
 
-    @Override
-    public String toString() {
-        if (size < 1) {
-            return "[ ]";
-        } else {
-            Node<T, K> temp = head;
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append("[");
-            for (int i = 0; i < size; i++) {
-                stringBuilder.append(temp.key);
-                stringBuilder.append(" - ");
-                stringBuilder.append(temp.value);
-                stringBuilder.append(", ");
-                temp = temp.next;
+    /**
+     * Increase array table[]
+     */
+    private Node<K, V>[] increaseTable(Node<K, V>[] table) {
+        tableFullness = 0;
+        capacity = table.length * coefficientIncrease;
+        MyHashMap<K, V> tempHashMap = new MyHashMap<>(capacity);
+        for (Node<K, V> data : table) {
+            if (data != null) {
+                while (data.next != null) {
+                    tempHashMap.put(data.key, data.value);
+                    data = data.next;
+                }
+                tempHashMap.put(data.key, data.value);
             }
-            stringBuilder.delete(stringBuilder.length() - 2, stringBuilder.length());
-            stringBuilder.append("]");
-            return stringBuilder.toString();
         }
+        tableFullness = tempHashMap.tableFullness;
+        return tempHashMap.table;
     }
 }
