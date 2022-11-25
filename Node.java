@@ -1,10 +1,10 @@
-package module9.linkedlist;
+package module9;
 
 public class Node<T> {
 
-    T element;
-    Node<T> prev;
-    Node<T> next;
+    public T element;
+    public Node<T> prev;
+    public Node<T> next;
 
     public Node() {
     }

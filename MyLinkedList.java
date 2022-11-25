@@ -1,6 +1,6 @@
-package module9.stack;
+package module9;
 
-public class MyStack<T> {
+public class MyLinkedList<T> {
 
     private Node<T> head;
     private Node<T> tail;
@@ -9,40 +9,13 @@ public class MyStack<T> {
     public void add(T element) {
         Node<T> newNode = new Node<>(element);
         if (head == null) {
-            tail = newNode;
             head = newNode;
         } else {
             tail.next = newNode;
-            newNode.prev = tail;
-            tail = newNode;
         }
+        newNode.prev = tail;
+        tail = newNode;
         size++;
-    }
-
-    public void clear() {
-        head = null;
-        tail = null;
-        size = 0;
-    }
-
-    public int size() {
-        return size;
-    }
-
-    public T peek() {
-        return tail.element;
-    }
-
-    public T pool() {
-        Node<T> result = tail;
-        if (head.next == null) {
-            head = null;
-        } else {
-            tail.prev.next = null;
-        }
-        tail = tail.prev;
-        size--;
-        return result.element;
     }
 
     public void remove(int index) {
@@ -91,8 +64,35 @@ public class MyStack<T> {
         tail = tail.prev;
     }
 
+    public void clear() {
+        head = null;
+        tail = null;
+        size = 0;
+    }
+
+    public int size() {
+        return size;
+    }
+
+    public T get(int index) {
+        normalIndex(index);
+        Node<T> temp;
+        if (index <= (size / 2)) {
+            temp = head;
+            for (int i = 0; i < index; i++) {
+                temp = temp.next;
+            }
+        } else {
+            temp = tail;
+            for (int i = size - 1; i > index; i--) {
+                temp = temp.prev;
+            }
+        }
+        return temp.element;
+    }
+
     private void normalIndex(int index) throws IndexOutOfBoundsException {
-        if(!( (index < size) && (index >= 0) )) {
+        if (!((index < size) && (index >= 0))) {
             throw new IndexOutOfBoundsException();
         }
     }

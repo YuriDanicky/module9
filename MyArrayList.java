@@ -1,4 +1,4 @@
-package module9.myarraylist;
+package module9;
 
 import java.util.Arrays;
 

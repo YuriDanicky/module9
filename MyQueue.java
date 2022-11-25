@@ -1,4 +1,4 @@
-package module9.myqueue;
+package module9;
 
 public class MyQueue<T> {
 
@@ -33,7 +33,7 @@ public class MyQueue<T> {
         return head.element;
     }
 
-    public T pool() {
+    public T poll() {
         Node<T> result = head;
         if(head.next == null) {
             tail = null;
